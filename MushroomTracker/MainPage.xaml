@@ -1,14 +1,17 @@
 ﻿<Page
-    x:Class="MushroomTracker.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:MushroomTracker"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps"
+    x:Class="MushroomTracker.MainPage"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
+
+        <Maps:MapControl x:Name="mapControl" ZoomLevel="15" MapServiceToken="ZYEQijq4uUdoTMuwoTpbxQ"/>
 
     </Grid>
 </Page>
