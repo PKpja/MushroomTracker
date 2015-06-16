@@ -11,7 +11,7 @@
 
     <Grid>
 
-        <Maps:MapControl x:Name="mapControl" ZoomLevel="15" MapServiceToken="ZYEQijq4uUdoTMuwoTpbxQ"/>
+        <Maps:MapControl x:Name="mapControl" ZoomLevel="15" MapServiceToken="ZYEQijq4uUdoTMuwoTpbxQ"   MapTapped="mapControl_MapTapped"/>
 
     </Grid>
 </Page>
