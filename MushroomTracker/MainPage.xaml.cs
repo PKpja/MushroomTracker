@@ -44,30 +44,53 @@ namespace MushroomTracker
             geolocator = new Geolocator();
             dispatcher = Window.Current.CoreWindow.Dispatcher;  
         }
+
+        private Geopoint getGeopoint(Coordinate coordinate) {
+            BasicGeoposition bgp = new BasicGeoposition();
+            bgp.Latitude = coordinate.Latitude;
+            bgp.Longitude = coordinate.Longitude;
+            Geopoint geopoint = new Geopoint(bgp);
+            return geopoint;
+        }
          
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             User u = getUser();
-            Coordinate location = u.lastLocation;
-            if (location != null)
-            {
-                BasicGeoposition bgp = new BasicGeoposition();
-                bgp.Latitude = location.Latitude;
-                bgp.Longitude = location.Longitude;
-                Geopoint geopoint = new Geopoint(bgp);
-
-                refreshLocation(geopoint);
-            }
-            else {
-                refreshLocation();
+            /*Coordinate location = u.lastLocation;
+             if (location != null)
+             {
+                 refreshLocation(getGeopoint(location));
+             }
+             else {*/
+            refreshLocation();
+            /*}*/
+            if (u.mushrooms != null) {
+                refreshMushrooms();
             }
             
-
             geolocator.MovementThreshold = 3;  
             geolocator.PositionChanged +=
             new TypedEventHandler<Geolocator,
                 PositionChangedEventArgs>(geolocator_PositionChanged);  
 
+        }
+
+        private void refreshMushrooms()
+        {
+            User u = getUser();
+            foreach (Mushroom mushroom in u.mushrooms)
+            {
+                addMushroomToMap(mushroom);
+            }
+        }
+
+        private void addMushroomToMap(Mushroom mushroom)
+        {
+            MapIcon mushroomIcon = new MapIcon();
+            mushroomIcon.Location = getGeopoint(mushroom.coordinate);
+            mushroomIcon.NormalizedAnchorPoint = new Point(0.5, 1.0);
+            mushroomIcon.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/mushroom.png"));
+            mapControl.MapElements.Add(mushroomIcon);
         }
 
         async private void geolocator_PositionChanged(Geolocator sender, PositionChangedEventArgs e)
@@ -86,21 +109,25 @@ namespace MushroomTracker
             {
                 geoposition = await geolocator.GetGeopositionAsync();
                 Geopoint point = geoposition.Coordinate.Point;
-                refreshLocation(point);
-            }
-            catch (Exception ignore)
-            {
-            }
-        }
 
-        private async void refreshLocation(Geopoint point)
-        {
-            try
-            {
-                User user = getUser();
-                user.lastLocation = new Coordinate(point);
                 mapControl.Center = point;
-                mapControl.MapElements.Add(getUserLocationIcon());
+                if (userLocationIcon == null)
+                {
+                    userLocationIcon = new MapIcon();
+                    userLocationIcon.Title = "Jestes tutaj";
+                    userLocationIcon.Location = geoposition.Coordinate.Point;
+                    userLocationIcon.NormalizedAnchorPoint = new Point(0.5, 1.0);
+                    userLocationIcon.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/location.png"));
+                    mapControl.MapElements.Add(userLocationIcon);
+                }
+                else {
+                    userLocationIcon.Location = geoposition.Coordinate.Point;
+                }
+                
+
+                User u = getUser();
+                u.lastLocation = new Coordinate(point);
+                saveUserToStorage(u);
             }
             catch (Exception ignore)
             {
@@ -115,23 +142,7 @@ namespace MushroomTracker
             return user;
         }
 
-        private MapElement getUserLocationIcon()
-        {
-
-            if (userLocationIcon == null) {
-                userLocationIcon = new MapIcon();
-                userLocationIcon.Location = geoposition.Coordinate.Point;
-                userLocationIcon.NormalizedAnchorPoint = new Point(0.5, 1.0);
-                userLocationIcon.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/location.png"));
-            }
- 
-            return userLocationIcon;
-        }
-
-   
-
-         
-
+       
         public void saveUserToStorage(User user)
         {
             MemoryStream stream = new MemoryStream();
@@ -174,6 +185,8 @@ namespace MushroomTracker
             Coordinate coordinate = new Coordinate(point);
 
             Mushroom mushroom = new Mushroom(coordinate);
+
+            addMushroomToMap(mushroom);
             if (user.mushrooms == null)
             {
                 user.mushrooms = new List<Mushroom>();
