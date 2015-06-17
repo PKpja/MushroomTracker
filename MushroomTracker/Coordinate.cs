@@ -8,13 +8,19 @@ using Windows.Foundation;
 
 namespace MushroomTracker
 {
+    /*
+     * To jest obiekt pomocniczy, który słuzy do tego, żeby można było zapisać w pamięci stałej
+     * współrzędne geograficzne długość i szerokość.
+     */
     public class Coordinate
     {
-
+        //pusty konstruktor musi być żeby odtworzyc obiekt z bazy danych.
+        // W przciwnym wypadku kiedy będziemy chcieli tekst Json przekonwertować na User, to aplikacja się wywali.
         public Coordinate()
         {
         }
 
+        // konwertowanie obiektu Geopoint na Coordinate w konstruktorze
         public Coordinate(Geopoint point)
         {
             Latitude = point.Position.Latitude;
