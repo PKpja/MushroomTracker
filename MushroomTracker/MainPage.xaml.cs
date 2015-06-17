@@ -86,12 +86,38 @@ namespace MushroomTracker
 
         private void addMushroomToMap(Mushroom mushroom)
         {
-            MapIcon mushroomIcon = new MapIcon();
-            mushroomIcon.Location = getGeopoint(mushroom.coordinate);
-            mushroomIcon.NormalizedAnchorPoint = new Point(0.5, 1.0);
-            mushroomIcon.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/mushroom.png"));
-            mapControl.MapElements.Add(mushroomIcon);
+            Image image = new Image();
+            image.Source = new Windows.UI.Xaml.Media.Imaging.BitmapImage(mushroom.getUri());
+            image.Tapped += delegate(object sender, TappedRoutedEventArgs e)
+            {
+                mushroom.toggleKind();
+                if (mushroom.shouldDisplay())
+                {
+                    image.Source = new Windows.UI.Xaml.Media.Imaging.BitmapImage(mushroom.getUri());
+                }
+                else {
+                    User u=getUser();
+                    u.mushrooms.Remove(mushroom);
+                    mapControl.Children.Remove(image);
+                    saveUserToStorage(u);
+                }
+                
+            }; 
+             
+            Geopoint location = new Geopoint(new BasicGeoposition()
+            {
+                Latitude = mushroom.coordinate.Latitude,
+                Longitude = mushroom.coordinate.Longitude
+            });
+
+
+            MapControl.SetLocation(image, location);
+            MapControl.SetNormalizedAnchorPoint(image, new Point(0.5, 0.5));
+            mapControl.Children.Add(image);
+            
         }
+
+        
 
         async private void geolocator_PositionChanged(Geolocator sender, PositionChangedEventArgs e)
         {
@@ -114,7 +140,7 @@ namespace MushroomTracker
                 if (userLocationIcon == null)
                 {
                     userLocationIcon = new MapIcon();
-                    userLocationIcon.Title = "Jestes tutaj";
+                    userLocationIcon.Title = "Jesteś tutaj";
                     userLocationIcon.Location = geoposition.Coordinate.Point;
                     userLocationIcon.NormalizedAnchorPoint = new Point(0.5, 1.0);
                     userLocationIcon.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/location.png"));
