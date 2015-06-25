@@ -74,8 +74,8 @@ namespace MushroomTracker
             await parseObject.SaveAsync();
             mushroom.objectId = parseObject.ObjectId;
             App.navigationObject = mushroom;
-            blockUI(false);
-            showProgress(false);
+            // blockUI(false);
+            // showProgress(false);
             Frame.GoBack();
         }
 
@@ -105,8 +105,8 @@ namespace MushroomTracker
             ParseObject parseObject = await query.GetAsync(mushroom.objectId);
             await parseObject.DeleteAsync();
             App.navigationObject = mushroom.objectId;
-            blockUI(false);
-            showProgress(false);
+            // blockUI(false);
+            // showProgress(false);
             Frame.GoBack();
         }
 
