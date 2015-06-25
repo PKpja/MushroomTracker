@@ -1,0 +1,4 @@
+MainPackage=C:\Users\Rafal\Documents\MushroomTracker\MushroomTracker\bin\Release\MushroomTracker_1.1.0.5_Bundle\MushroomTracker_1.1.0.5_AnyCPU.appx
+SymbolPackage=C:\Users\Rafal\Documents\MushroomTracker\MushroomTracker\AppPackages\MushroomTracker_1.1.0.5_Test\MushroomTracker_1.1.0.5_AnyCPU.appxsym
+ResourcePack=C:\Users\Rafal\Documents\MushroomTracker\MushroomTracker\bin\Release\MushroomTracker_1.1.0.5_Bundle\MushroomTracker_1.1.0.5_scale-100.appx
+ResourcePack=C:\Users\Rafal\Documents\MushroomTracker\MushroomTracker\bin\Release\MushroomTracker_1.1.0.5_Bundle\MushroomTracker_1.1.0.5_scale-140.appx

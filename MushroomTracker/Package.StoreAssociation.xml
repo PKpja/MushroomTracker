@@ -193,5 +193,11 @@
     <MainPackageIdentityName>38552PiotrKaczorek.AkwaSwiat</MainPackageIdentityName>
     <MainPackageIdentityName>38552PiotrKaczorek.Akwawiat</MainPackageIdentityName>
   </AccountPackageIdentityNames>
-  <PackageInfoList LandingUrl="https://dev.windowsphone.com/AppSubmission/AssociationLanding?windowsProductId=d7f5e04c-8020-4d84-b4e0-24e9275ebb69" />
+  <PackageInfoList LandingUrl="https://dev.windows.com/dashboard/Application?appId=9WZDNCRD2TPX">
+    <PackageInfo>
+      <OsMinVersion>6.3.0.0</OsMinVersion>
+      <PackageArchitecture>Neutral</PackageArchitecture>
+      <PackageMaxArchitectureVersion>1.1.0.2</PackageMaxArchitectureVersion>
+    </PackageInfo>
+  </PackageInfoList>
 </StoreAssociation>
