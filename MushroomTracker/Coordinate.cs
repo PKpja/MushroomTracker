@@ -14,6 +14,8 @@ namespace MushroomTracker
      */
     public class Coordinate
     {
+      
+
         //pusty konstruktor musi być żeby odtworzyc obiekt z bazy danych.
         // W przciwnym wypadku kiedy będziemy chcieli tekst Json przekonwertować na User, to aplikacja się wywali.
         public Coordinate()
@@ -25,6 +27,13 @@ namespace MushroomTracker
         {
             Latitude = point.Position.Latitude;
             Longitude = point.Position.Longitude;
+        }
+
+        public Coordinate(double Latitude, double Longitude)
+        {
+            // TODO: Complete member initialization
+            this.Latitude = Latitude;
+            this.Longitude = Longitude;
         }
 
         public double Latitude { get; set; }

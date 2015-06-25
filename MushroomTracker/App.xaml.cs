@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Parse;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace MushroomTracker
     public sealed partial class App : Application
     {
         private TransitionCollection transitions;
+        public static Object navigationObject;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -35,6 +37,9 @@ namespace MushroomTracker
         {
             this.InitializeComponent();
             this.Suspending += this.OnSuspending;
+
+            ParseClient.Initialize("O4bakGpa323D54yIMKSQKwNEhKrJTG2jo9bmYOHy", "VWdRFF1jdfzJRCnp4ugCYv9jsCpe8wrNlDMyeSxc");
+
         }
 
         /// <summary>

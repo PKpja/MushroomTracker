@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Parse;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -51,6 +52,7 @@ namespace MushroomTracker
             // operacji na mapie. Pozwala nam na uzyskanie współrzędnych geograficznych 
             // urzytkownika.
             geolocator = new Geolocator();
+
             // stworzenie nowego obiektu Dispatcher. służy on do uruchamiania
             // metod asynchronicznych, czyli takich które wykonują się w tle
             // tj. nie blokują interfejsu użytkownika.
@@ -79,17 +81,33 @@ namespace MushroomTracker
          */
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            // pobranie obiektu Użytkowin (User). Więcej info w deklaracji metody poniżej.
-            User u = getUser();
+            if (e.NavigationMode == NavigationMode.Back)
+            {
+                geolocator = new Geolocator();
+                if (App.navigationObject != null)
+                {
+                    User u = getUser();
+                    if (App.navigationObject.GetType() == typeof(Mushroom))
+                    {
+                        Mushroom newMushroom = (Mushroom)App.navigationObject;
+                        u.updateMushroom(newMushroom);
+                    }
+                    else if (App.navigationObject.GetType() == typeof(string))
+                    {
+                        u.removeMushroomByObjectId((string)App.navigationObject);
+                    }
+                    App.navigationObject = null;
+                    redrawMushrooms();                    
+                }
+
+            }
+            else {
+                refreshMushrooms();
+            }
+ 
             // Odświerzenie ikonki obecnego położenia użytkownika czyli w naszym przypadku
             // niebieskiego celownika. Więcej info w deklaracji metody poniżej.
             refreshLocation();
-            // if- jezeli użytkowik ma jakieś grzyby
-            if (u.mushrooms != null) {
-                // wtedy odświerz grzyby na mapie. Metoda bierze wszystkie grzyby
-                // które użytkownik zaznaczył i ustawia je na mapie.
-                refreshMushrooms();
-            }
             
             // konfiguracja obiektu Geolocator. Ustawiamy MovementThreshhold na 3, czyli 
             // z jaką obiekt będzie informował o zmianie położenia geograficznego
@@ -105,26 +123,42 @@ namespace MushroomTracker
 
         }
 
-        /*
-         * Odświerzenie wszystkich grybów. Metoda bierze wszystkie grzyby użytkownika
-         * i jeden po drugim dodaje je do mapy na odpowiednich współrzędnych.
-         */
-        private void refreshMushrooms()
+        private void redrawMushrooms()
+        {
+            mapControl.Children.Clear();
+            User u = getUser();
+            foreach (Mushroom item in u.mushrooms)
+            {
+                addMushroomToMap(item);
+            }
+        }
+
+        private async void refreshMushrooms()
         {
             User u = getUser();
-            // foreach- dla każdego grzyba
-            foreach (Mushroom mushroom in u.mushrooms)
+
+            ParseQuery<ParseObject> q = ParseObject.GetQuery("Mushroom");
+            IEnumerable<ParseObject> results = await q.FindAsync();
+            foreach (ParseObject item in results)
             {
-                // dodaj pojedynczego grzyba do mapy.
-                // więcej infor w deklaracji metody poniżej.
-                addMushroomToMap(mushroom);
+                Mushroom mushroom = new Mushroom(new Coordinate(item.Get<double>("Latitude"), item.Get<double>("Longitude")));
+                mushroom.kind = item.Get<int>("kind");
+                mushroom.density = item.Get<int>("density");
+                mushroom.objectId = item.ObjectId;
+                if (u.mushrooms == null) {
+                    u.mushrooms = new List<Mushroom>();
+                }
+                u.mushrooms.Add(mushroom);
             }
+
+            redrawMushrooms();
+
         }
 
         /*
          * Dodaj pojedynczego grzyba do mapy. Metoda ta jest wykorzystywana przy 
          * iterowaniu przez wszystkie grzyby użytkownika.
-         */
+          */
         private void addMushroomToMap(Mushroom mushroom)
         {
             // Stworzenie nowego obiektu obrazka.
@@ -138,30 +172,8 @@ namespace MushroomTracker
             // przypisujemy blok kodu który odpali się, kiedy uzytkownik kliknie na obrazek grzyba na mapie.
             image.Tapped += delegate(object sender, TappedRoutedEventArgs e)
             {
-                // po kliknięciu najpierw zmieniamy typ grzyba na kolejny. Jeżeli był to obrazek jednego grzyba,
-                // to zmieni się na obrazek z dwoma grzybami, jak dwa grzyby to zmieni się na trzy grzyby a jak
-                // trzy grzyby to zmieni się na "żaden" grzyb
-                mushroom.toggleKind();
-                // obiekt grzyb (mushroom) posiada metodę która informuje czy dany grzyb powinien znaleść się na mapie
-                // czy zstał usunięty (jezeli były wyświetlane trzy grzyby i zniemiły się na żaden grzyb, to nie chcemy
-                // takiego grzyba wyświetlać tylko go usunąć)
-                if (mushroom.shouldDisplay())
-                {
-                    // jeżeli chcemy go wyświetlić, to aktualizujemy jego obrazek
-                    image.Source = new Windows.UI.Xaml.Media.Imaging.BitmapImage(mushroom.getUri());
-                }
-                else {
-                    // jeżeli nie chcemy go wyświetlić, to usuwamy go z listy grybów w obiekcie użytkownik.
-                    // najpierw pobieramy użytkownika
-                    User u=getUser();
-                    // później usuwamy grzyba z listy
-                    u.mushrooms.Remove(mushroom);
-                    // i usuwamy grzyba z mapy.
-                    mapControl.Children.Remove(image);
-                    // zapisujemy użytkowika razem z pomniejszoną o jeden listą grzybów.
-                    saveUserToStorage(u);
-                }
-                
+                string json = JsonHandler.convertToString(mushroom);
+                Frame.Navigate(typeof(DetailsPage), json); 
             }; 
              
             // tworzymy obiekt Geopoin na podstawie długości i szerokości geograficznej
@@ -182,6 +194,7 @@ namespace MushroomTracker
             mapControl.Children.Add(image);
             
         }
+       
 
         /*
          * Metoda odpala się wtedy, kiedy telefon zmieni położenie i stworzony na samym poczatku działania 
@@ -250,7 +263,7 @@ namespace MushroomTracker
                 // zaktualizowanie lokalizacji w której uzytkownik ostatnio się znajdował
                 u.lastLocation = new Coordinate(point);
                 // zapisanie zaktualizowanego użytkownika do pamięci trwałej.
-                saveUserToStorage(u);
+                //saveUserToStorage(u);
             }
             catch (Exception ignore)
             {
@@ -266,66 +279,10 @@ namespace MushroomTracker
             // to będzie miał wartość null
             if (user == null) {
                 // pobranie użytkownika z pamięci trwałej telefonu
-                user = getUserFromStorage();
+                user = new User();
             }
             // zwrócenie użytkownika
             return user;
-        }
-
-       /*
-        * metoda służy do tego, żeby obiekt Użytkownik zapisać do pamięci trwałej. Piszę pamięci trwałęj, dlaego, 
-        * że nie wykorzystujemy bazy danych tylko "ustawienia użytkownika". Wykorzystujemy ustawienia uzytkownika a nie 
-        * baze danych, dlatego, że tak po prastu jest łatwiej
-        */
-        public void saveUserToStorage(User user)
-        {
-
-            MemoryStream stream = new MemoryStream();
-            // przekształcamy obiekt na jsona. Json (javaScript object notation) to taki obiekt w postaci tekstowej.
-            // jest to taki dzisiejszy standard wykorzystywany żeby zapisać dane do pliku tekstowego
-            DataContractJsonSerializer jsonSer =
-            new DataContractJsonSerializer(typeof(User));
-            jsonSer.WriteObject(stream, user);
-            stream.Position = 0;
-            StreamReader sr = new StreamReader(stream);
-            string json = sr.ReadToEnd();
-            // jak już mamy text json to wtedy zapisujemy go do localsettings. 
-            // LocalSettings działają tak jak baza danych, bo zapisane w tym informację zostają przechowane
-            // w pamięci telefony po zakończeniu działania aplikacji i po ponownym uruchomieni można te informacje spowrotem
-            // uzyskać
-            Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            // zapisujemy do localsettings pod kluczem "user"
-            localSettings.Values["user"] = json;  
-        }
-
-        /*
-         * Metoda służy do tego, żeby wyciągnąć obiekt użytkownika z LocalSettings i przekształcić go na obiekt C#.
-         */
-        public User getUserFromStorage()
-        {
-            User u;
-            // pobierasmy lcalSettings
-            Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            // bierzemy teks który znajduje się pod kluczem "user" i deklarujemy, że oczekujemy, że jest to string (bo można przechowywać inne wartości.)
-            string userString = localSettings.Values["user"] as string;
-
-            
-            if (userString != null)
-            {
-                // Jeżeli tekst Json znajduje się w LocalSettings, wtedy konwerujemy go na obiekt C#
-                byte[] data = Encoding.UTF8.GetBytes(userString);
-                MemoryStream memStream = new MemoryStream(data);
-                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(User));
-                u = (User)serializer.ReadObject(memStream);
-            }
-            else
-            {
-                // jeżeli wcześniej nie zapisaliśmy użytkownika do LocalSettings (czyli tylko raz zaraz po zainstalowaniu aplikacji) wtedy
-                // tworzymy nowa instancję obiektu User.
-                u = new User();
-            }
-
-            return u;
         }
 
         /*
@@ -345,21 +302,16 @@ namespace MushroomTracker
             // W ten sposób stworzyliśmy obiekt grzyba z jednym grzybem na określonych współrzędnych geograficznych.
             // W konstruktorze grzyba więcej informacji na ten temat.
             Mushroom mushroom = new Mushroom(coordinate);
-            // Dodajemy grzyba do mapy
-            addMushroomToMap(mushroom);
-            // jeżeli użytkownik nie ma jeszcze przypisanych żadnych grzybów to lista
-            // grzybów będzie null. Musimy to sprawdzić, dlatego, że jeżeli chcielibysmy dodać grzyba do 
-            // listy któa jest null, wtedy aplikacja by sie wywaliła
-            if (user.mushrooms == null)
-            {
-               // tak więc jeśli jest null, to tworzymy pusta listę na grzyby 
-                user.mushrooms = new List<Mushroom>();
-            }
-            // i dodajemy grzyba
-            user.mushrooms.Add(mushroom);
-            // i zapisujemy całego użytkownika z powiększoną o jeden lista grzybów do pamięci trwałej.
-            saveUserToStorage(user);
+
+            
+            string json = JsonHandler.convertToString(mushroom);
+
+            Frame.Navigate(typeof(DetailsPage), json); 
+        
+         
         }
+
+
         
     }
 }
