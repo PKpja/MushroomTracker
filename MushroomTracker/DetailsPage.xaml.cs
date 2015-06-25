@@ -18,9 +18,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace MushroomTracker
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
+
     public sealed partial class DetailsPage : Page
     {
         private Mushroom mushroom;
@@ -33,15 +31,17 @@ namespace MushroomTracker
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             string json = e.Parameter.ToString();
-             mushroom = JsonHandler.deserializeMushroom(json);
+            mushroom = JsonHandler.deserializeMushroom(json);
 
-             comboBoxKind.SelectedIndex = mushroom.kind;
-             comboBoxDensity.SelectedIndex = mushroom.density;
+            comboBoxKind.SelectedIndex = mushroom.kind;
+            comboBoxDensity.SelectedIndex = mushroom.density;
 
-             if (mushroom.objectId == null) {
-                 btnDelete.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-             }
-           // txtType.Text = mushroom.getUri().ToString();
+            if (mushroom.objectId == null)
+            {
+                btnDelete.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+            }
+
+            showProgress(false);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -54,16 +54,19 @@ namespace MushroomTracker
 
         private async void startMushroomRequestAsync()
         {
+            showProgress(true);
+            blockUI(true);
             ParseObject parseObject;
             if (mushroom.objectId == null)
             {
                 parseObject = new ParseObject("Mushroom");
             }
-            else {
+            else
+            {
                 ParseQuery<ParseObject> query = ParseObject.GetQuery("Mushroom");
                 parseObject = await query.GetAsync(mushroom.objectId);
             }
-                        
+
             parseObject["Latitude"] = mushroom.coordinate.Latitude;
             parseObject["Longitude"] = mushroom.coordinate.Longitude;
             parseObject["density"] = mushroom.density;
@@ -71,7 +74,22 @@ namespace MushroomTracker
             await parseObject.SaveAsync();
             mushroom.objectId = parseObject.ObjectId;
             App.navigationObject = mushroom;
+            blockUI(false);
+            showProgress(false);
             Frame.GoBack();
+        }
+
+        private void blockUI(bool p)
+        {
+            comboBoxKind.IsEnabled = !p;
+            comboBoxDensity.IsEnabled = !p;
+            btnDelete.IsEnabled = !p;
+            btnSave.IsEnabled = !p;
+        }
+
+        private void showProgress(bool p)
+        {
+            indeterminateProbar.Visibility = p ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
@@ -81,13 +99,17 @@ namespace MushroomTracker
 
         private async void removeAsync()
         {
+            showProgress(true);
+            blockUI(true);
             ParseQuery<ParseObject> query = ParseObject.GetQuery("Mushroom");
             ParseObject parseObject = await query.GetAsync(mushroom.objectId);
-            parseObject.DeleteAsync();
+            await parseObject.DeleteAsync();
             App.navigationObject = mushroom.objectId;
+            blockUI(false);
+            showProgress(false);
             Frame.GoBack();
         }
 
-       
+
     }
 }

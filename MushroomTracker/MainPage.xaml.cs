@@ -14,6 +14,7 @@ using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
@@ -135,6 +136,7 @@ namespace MushroomTracker
 
         private async void refreshMushrooms()
         {
+            showProgress(true);
             User u = getUser();
 
             ParseQuery<ParseObject> q = ParseObject.GetQuery("Mushroom");
@@ -152,7 +154,12 @@ namespace MushroomTracker
             }
 
             redrawMushrooms();
+            showProgress(false);
+        }
 
+        private void showProgress(bool p)
+        {
+            progressRing.IsActive = p;
         }
 
         /*

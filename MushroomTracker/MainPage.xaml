@@ -10,15 +10,25 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-
+         
         <Maps:MapControl x:Name="mapControl" 
                          ZoomLevel="15" 
                          MapServiceToken="ZYEQijq4uUdoTMuwoTpbxQ"  
                          MapTapped="mapControl_MapTapped">
-            <Maps:MapItemsControl 
-                x:Name="mapItemsControl"
-                />
+            <Maps:MapItemsControl x:Name="mapItemsControl" />
         </Maps:MapControl>
-
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="90"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ProgressRing x:Name="progressRing" 
+                      IsActive="False" Background="{x:Null}" />
+        </Grid>
+        
     </Grid>
 </Page>

@@ -13,13 +13,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="70"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <ComboBox Grid.Row="0" Header="Type of mushroom" x:Name="comboBoxKind" >
+        <ComboBox Grid.Row="0" Header="Typ" x:Name="comboBoxKind" >
             <x:String>Podgrzybek (Bay bolete)</x:String>
             <x:String>Borowik (Cep)</x:String>
             <x:String>Koźlarz (Chanterelle)</x:String>
@@ -27,13 +28,17 @@
             <x:String>Kurka (Suillus)</x:String>
         </ComboBox>
 
-        <ComboBox Grid.Row="1" Header="How many mushrooms" x:Name="comboBoxDensity" >
+        <ComboBox Grid.Row="1" Header="Zagęszczenie" x:Name="comboBoxDensity" >
             <x:String>Mało (Few)</x:String>
             <x:String>Średnio (Moderate)</x:String>
             <x:String>Wiele (Plenty)</x:String>
         </ComboBox>
         <Rectangle Grid.Row="2"/>
-        <Button Grid.Row="3" Margin="10,2,0,1" Width="380" x:Name="btnDelete" Click="btnDelete_Click">Delete</Button>
-        <Button Grid.Row="4" Margin="10,2,0,1" Width="380" Click="Button_Click">Save</Button>
+        <ProgressBar 
+            Grid.Row="3"
+            x:Name="indeterminateProbar" 
+            IsIndeterminate="True"  />
+        <Button Grid.Row="4" Margin="10,2,0,1" Width="380" x:Name="btnDelete" Click="btnDelete_Click">Usuń</Button>
+        <Button Grid.Row="5" Margin="10,2,0,1" Width="380" x:Name="btnSave" Click="Button_Click">Zapisz</Button>
     </Grid>
 </Page>
